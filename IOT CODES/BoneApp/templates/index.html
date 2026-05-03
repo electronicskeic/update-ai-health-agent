@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bone Vibration Spectroscopy</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="bg-blue-900 text-white rounded-lg shadow-lg p-6 mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">Bone Vibration Spectroscopy</h1>
+                <p class="text-blue-200 mt-1">Clinical Patient Dashboard | Edge-Computing System</p>
+            </div>
+            <div class="bg-blue-800 p-3 rounded-md border border-blue-700">
+                <span class="text-sm uppercase tracking-wide text-blue-300">System Status</span><br>
+                <span class="font-mono text-green-400 font-bold">🟢 Server Online (Port 5000)</span>
+            </div>
+        </div>
+
+        <!-- NEW: LIVE PROGRESS BANNER -->
+        <div id="liveBanner" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-6 mb-8 rounded shadow-sm hidden transition-all duration-300">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold">⚡ Active Clinical Trial in Progress</h3>
+                    <p class="text-sm mt-1">System is actively capturing acoustic bone resonance from the ESP32...</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-sm uppercase font-bold text-yellow-600 tracking-wider">Drops Detected</span><br>
+                    <span id="dropCounter" class="text-4xl font-mono font-bold text-black">0</span> 
+                    <span class="text-xl text-gray-600">/ 20</span>
+                </div>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-yellow-200 rounded-full h-3 mt-4">
+                <div id="progressBar" class="bg-yellow-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Patient Intake Form -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <h2 class="text-xl font-semibold text-gray-800">New Patient Intake</h2>
+            </div>
+            <div class="p-6">
+                <form id="intakeForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                        <input type="number" id="age" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+                        <input type="number" id="height" step="0.1" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                        <input type="number" id="weight" step="0.1" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ESP32 IP</label>
+                        <input type="text" id="espIp" value="10.57.174.231" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                    </div>
+                    <div class="md:col-span-4 flex justify-between items-center mt-2">
+                        <div id="intakeStatus" class="text-sm text-gray-600 font-medium"></div>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow">
+                            🚀 Start Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">Patient Database</h2>
+                <div>
+                    <button onclick="fetchData()" class="text-sm bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200 transition font-semibold shadow-sm">
+                        ↻ Refresh Data
+                    </button>
+                    <!-- NEW: CSV Download Button -->
+                    <button onclick="window.location.href='/api/download_csv'" class="ml-2 text-sm bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 transition font-semibold shadow-sm">
+                        📥 Download CSV
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
+                            <th class="p-4 border-b">ID</th>
+                            <th class="p-4 border-b">Date / Time</th>
+                            <th class="p-4 border-b">Age</th>
+                            <th class="p-4 border-b">BMI</th>
+                            <th class="p-4 border-b text-red-600">Peak (g)</th>
+                            <th class="p-4 border-b text-orange-600">Decay Ratio</th>
+                            <th class="p-4 border-b text-green-700 font-bold">Freq (Hz)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="text-gray-700">
+                        <!-- Data will be injected here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript to fetch data from Python API -->
+    <script>
+        // Intake Form Handler
+        document.getElementById('intakeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const statusDiv = document.getElementById('intakeStatus');
+            
+            const age = document.getElementById('age').value;
+            const height = document.getElementById('height').value;
+            const weight = document.getElementById('weight').value;
+            const espIp = document.getElementById('espIp').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = "Processing...";
+            statusDiv.innerHTML = "<span class='text-blue-600'>Sending to ESP32...</span>";
+            
+            try {
+                const response = await fetch('/api/start_test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ age, height, weight, esp_ip: espIp })
+                });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    statusDiv.innerHTML = `<span class='text-green-600 font-bold'>✅ ${result.message} (ID: ${result.patient_id}, BMI: ${result.bmi})</span>`;
+                    e.target.reset();
+                    document.getElementById('espIp').value = espIp; // Keep the IP
+                } else {
+                    statusDiv.innerHTML = `<span class='text-red-600 font-bold'>❌ Error: ${result.message}</span>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<span class='text-red-600 font-bold'>❌ Connection Error. Is server running?</span>`;
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = "🚀 Start Test";
+        });
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = ''; // Clear table
+
+                data.forEach(row => {
+                    // row format: [db_id, patient_id, age, bmi, peak, std_peak, decay, std_decay, freq, timestamp]
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 border-b transition-colors duration-150";
+                    
+                    // Highlight low frequencies for osteopenia/osteoporosis risk
+                    let freqClass = "font-bold text-green-600";
+                    if (row[8] < 50) freqClass = "font-bold text-red-600 bg-red-100 rounded px-2 py-1 inline-block";
+
+                    tr.innerHTML = `
+                        <td class="p-4 font-mono font-semibold text-blue-800">${row[1]}</td>
+                        <td class="p-4 text-sm text-gray-500">${row[9]}</td>
+                        <td class="p-4">${row[2]}</td>
+                        <td class="p-4">${row[3].toFixed(1)}</td>
+                        <td class="p-4 font-mono">${row[4].toFixed(2)}</td>
+                        <td class="p-4 font-mono">${row[6].toFixed(2)}</td>
+                        <td class="p-4 font-mono">
+                            <span class="${freqClass}">${row[8].toFixed(2)} Hz</span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // --- NEW: FETCH LIVE DROP PROGRESS ---
+        async function fetchLiveStatus() {
+            try {
+                const response = await fetch('/api/live');
+                const data = await response.json();
+                const drops = parseInt(data.drops);
+                const banner = document.getElementById('liveBanner');
+                
+                // Show banner if a trial is actively running
+                if (drops > 0 && drops < 20) {
+                    banner.classList.remove('hidden');
+                    document.getElementById('dropCounter').innerText = drops;
+                    document.getElementById('progressBar').style.width = (drops / 20) * 100 + "%";
+                } else {
+                    banner.classList.add('hidden');
+                }
+            } catch (error) {}
+        }
+
+        // Fetch data immediately, and then every 3 seconds
+        fetchData();
+        setInterval(fetchData, 3000);
+        setInterval(fetchLiveStatus, 500); // Check for new heel drops every 0.5 sec
+    </script>
+</body>
+</html>
