@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.cpython-*.pyc
+*.db
+.streamlit/secrets.toml
+diabetes_raw.csv
