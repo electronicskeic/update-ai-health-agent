@@ -4,70 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bone Vibration Spectroscopy</title>
-    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #f0f0f0; }
+        .glass { background: rgba(10, 10, 10, 0.75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 30, 30, 0.15); }
+        .input-dark { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 50, 50, 0.3); color: white; }
+        .input-dark:focus { outline: none; border-color: rgba(255, 50, 50, 0.8); box-shadow: 0 0 10px rgba(255, 0, 0, 0.4); }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #660000; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff0000; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans p-8">
+<body class="relative min-h-screen text-gray-200">
 
-    <div class="max-w-6xl mx-auto">
+    <!-- Video Background -->
+    <!-- You can change the 'src' URL to any video you want! -->
+    <video autoplay loop muted playsinline class="fixed top-0 left-0 w-full h-full object-cover z-[-1] opacity-30">
+        <source src="https://static.videezy.com/system/resources/previews/000/038/886/original/Abstract_Red_Background_4K.mp4" type="video/mp4">
+    </video>
+
+    <div class="max-w-6xl mx-auto p-8 relative z-10">
+        
         <!-- Header -->
-        <div class="bg-blue-900 text-white rounded-lg shadow-lg p-6 mb-8 flex justify-between items-center">
+        <div class="glass rounded-xl p-6 mb-8 flex justify-between items-center shadow-2xl">
             <div>
-                <h1 class="text-3xl font-bold">Bone Vibration Spectroscopy</h1>
-                <p class="text-blue-200 mt-1">Clinical Patient Dashboard | Edge-Computing System</p>
+                <h1 class="text-3xl font-semibold tracking-[0.2em] text-red-500 uppercase">Bone Vibration Spectroscopy</h1>
+                <p class="text-gray-400 mt-2 text-xs tracking-widest uppercase">Clinical Patient Dashboard | Edge-Computing System</p>
             </div>
-            <div class="bg-blue-800 p-3 rounded-md border border-blue-700">
-                <span class="text-sm uppercase tracking-wide text-blue-300">System Status</span><br>
-                <span class="font-mono text-green-400 font-bold">🟢 Server Online (Port 5000)</span>
+            <div class="flex items-center gap-6">
+                <!-- AI Health Agent Function -->
+                <a href="http://localhost:8501" target="_blank" class="flex items-center gap-2 bg-black/40 border border-red-500 text-red-400 hover:bg-red-600 hover:text-white uppercase tracking-widest text-[10px] px-4 py-2 rounded-sm transition-all duration-300 shadow-[0_0_10px_rgba(255,0,0,0.3)] hover:shadow-[0_0_20px_rgba(255,0,0,0.8)]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Launch AI Health Agent
+                </a>
+
+                <div class="text-right border-l border-red-900/50 pl-6">
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500 block mb-2">System Status</span>
+                    <span class="text-xs font-mono text-red-500 font-bold border border-red-500/30 bg-red-500/10 px-4 py-2 rounded-sm animate-pulse inline-block">
+                        ● Server Online
+                    </span>
+                </div>
             </div>
         </div>
 
         <!-- NEW: LIVE PROGRESS BANNER -->
-        <div id="liveBanner" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-6 mb-8 rounded shadow-sm hidden transition-all duration-300">
+        <div id="liveBanner" class="glass text-white p-6 mb-8 rounded-xl shadow-2xl hidden transition-all duration-300 border-l-4 border-red-600">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-lg font-bold">⚡ Active Clinical Trial in Progress</h3>
-                    <p class="text-sm mt-1">System is actively capturing acoustic bone resonance from the ESP32...</p>
+                    <h3 class="text-lg font-semibold text-red-500 tracking-widest uppercase">⚡ Active Trial in Progress</h3>
+                    <p class="text-xs text-gray-400 mt-2 tracking-wide uppercase">Capturing acoustic resonance data via ESP32...</p>
                 </div>
                 <div class="text-right">
-                    <span class="text-sm uppercase font-bold text-yellow-600 tracking-wider">Drops Detected</span><br>
-                    <span id="dropCounter" class="text-4xl font-mono font-bold text-black">0</span> 
-                    <span class="text-xl text-gray-600">/ 20</span>
+                    <span class="text-[10px] uppercase text-gray-500 tracking-widest block mb-1">Drops Detected</span>
+                    <span id="dropCounter" class="text-4xl font-mono text-red-500">0</span> 
+                    <span class="text-lg text-gray-600 font-mono">/ 5</span>
                 </div>
             </div>
             <!-- Progress Bar -->
-            <div class="w-full bg-yellow-200 rounded-full h-3 mt-4">
-                <div id="progressBar" class="bg-yellow-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+            <div class="w-full bg-black/60 rounded-sm h-1 mt-5 overflow-hidden">
+                <div id="progressBar" class="bg-red-600 h-full transition-all duration-300 shadow-[0_0_10px_rgba(255,0,0,0.8)]" style="width: 0%"></div>
             </div>
         </div>
 
         <!-- Patient Intake Form -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-xl font-semibold text-gray-800">New Patient Intake</h2>
+        <div class="glass rounded-xl shadow-2xl overflow-hidden mb-8">
+            <div class="p-5 border-b border-red-900/30">
+                <h2 class="text-sm font-semibold tracking-widest uppercase text-gray-300">New Patient Intake</h2>
             </div>
             <div class="p-6">
-                <form id="intakeForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form id="intakeForm" class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
-                        <input type="number" id="age" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">Age</label>
+                        <input type="number" id="age" required class="input-dark w-full rounded-sm p-3 transition-all font-mono text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
-                        <input type="number" id="height" step="0.1" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">Height (cm)</label>
+                        <input type="number" id="height" step="0.1" required class="input-dark w-full rounded-sm p-3 transition-all font-mono text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input type="number" id="weight" step="0.1" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">Weight (kg)</label>
+                        <input type="number" id="weight" step="0.1" required class="input-dark w-full rounded-sm p-3 transition-all font-mono text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ESP32 IP</label>
-                        <input type="text" id="espIp" value="10.57.174.231" required class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border">
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">ESP32 IP</label>
+                        <input type="text" id="espIp" value="10.57.174.231" required class="input-dark w-full rounded-sm p-3 transition-all font-mono text-sm">
                     </div>
-                    <div class="md:col-span-4 flex justify-between items-center mt-2">
-                        <div id="intakeStatus" class="text-sm text-gray-600 font-medium"></div>
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition font-bold shadow">
-                            🚀 Start Test
+                    <div class="md:col-span-4 flex justify-between items-center mt-6">
+                        <div id="intakeStatus" class="text-xs font-mono text-gray-400 tracking-wide uppercase"></div>
+                        <button type="submit" class="bg-red-700/80 hover:bg-red-600 text-white uppercase tracking-widest text-xs px-8 py-4 rounded-sm transition-all duration-300 shadow-[0_0_15px_rgba(255,0,0,0.3)] hover:shadow-[0_0_25px_rgba(255,0,0,0.6)] border border-red-500/50">
+                            Initialize Test
                         </button>
                     </div>
                 </form>
@@ -75,16 +103,15 @@
         </div>
 
         <!-- Data Table -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                <h2 class="text-xl font-semibold text-gray-800">Patient Database</h2>
-                <div>
-                    <button onclick="fetchData()" class="text-sm bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200 transition font-semibold shadow-sm">
-                        ↻ Refresh Data
+        <div class="glass rounded-xl shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-red-900/30 flex justify-between items-center">
+                <h2 class="text-sm font-semibold tracking-widest uppercase text-gray-300">Patient Database</h2>
+                <div class="flex gap-4">
+                    <button onclick="fetchData()" class="text-[10px] uppercase tracking-widest border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 px-5 py-2 rounded-sm transition-all bg-black/40">
+                        Refresh Data
                     </button>
-                    <!-- NEW: CSV Download Button -->
-                    <button onclick="window.location.href='/api/download_csv'" class="ml-2 text-sm bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 transition font-semibold shadow-sm">
-                        📥 Download CSV
+                    <button onclick="window.location.href='/api/download_csv'" class="text-[10px] uppercase tracking-widest border border-red-800 text-red-400 hover:bg-red-900/60 hover:text-red-300 hover:border-red-500 px-5 py-2 rounded-sm transition-all bg-red-900/20">
+                        Export CSV
                     </button>
                 </div>
             </div>
@@ -92,27 +119,25 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                            <th class="p-4 border-b">ID</th>
-                            <th class="p-4 border-b">Date / Time</th>
-                            <th class="p-4 border-b">Age</th>
-                            <th class="p-4 border-b">BMI</th>
-                            <th class="p-4 border-b text-red-600">Peak (g)</th>
-                            <th class="p-4 border-b text-orange-600">Decay Ratio</th>
-                            <th class="p-4 border-b text-green-700 font-bold">Freq (Hz)</th>
+                        <tr class="bg-black/50 text-gray-500 text-[10px] uppercase tracking-widest">
+                            <th class="p-5 border-b border-red-900/20">ID</th>
+                            <th class="p-5 border-b border-red-900/20">Date / Time</th>
+                            <th class="p-5 border-b border-red-900/20">Age</th>
+                            <th class="p-5 border-b border-red-900/20">BMI</th>
+                            <th class="p-5 border-b border-red-900/20 text-red-500">Peak (g)</th>
+                            <th class="p-5 border-b border-red-900/20">Decay</th>
+                            <th class="p-5 border-b border-red-900/20 text-gray-300">Freq (Hz)</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="text-gray-700">
-                        <!-- Data will be injected here by JavaScript -->
+                    <tbody id="tableBody" class="text-gray-400 text-xs tracking-wide">
+                        <!-- Data injected by JS -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript to fetch data from Python API -->
     <script>
-        // Intake Form Handler
         document.getElementById('intakeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
@@ -125,7 +150,7 @@
             
             btn.disabled = true;
             btn.innerHTML = "Processing...";
-            statusDiv.innerHTML = "<span class='text-blue-600'>Sending to ESP32...</span>";
+            statusDiv.innerHTML = "<span class='text-gray-500 animate-pulse'>TRANSMITTING TO ESP32...</span>";
             
             try {
                 const response = await fetch('/api/start_test', {
@@ -136,18 +161,18 @@
                 const result = await response.json();
                 
                 if (result.status === "success") {
-                    statusDiv.innerHTML = `<span class='text-green-600 font-bold'>✅ ${result.message} (ID: ${result.patient_id}, BMI: ${result.bmi})</span>`;
+                    statusDiv.innerHTML = `<span class='text-red-400'>[SUCCESS] ID: ${result.patient_id} | BMI: ${result.bmi}</span>`;
                     e.target.reset();
-                    document.getElementById('espIp').value = espIp; // Keep the IP
+                    document.getElementById('espIp').value = espIp; 
                 } else {
-                    statusDiv.innerHTML = `<span class='text-red-600 font-bold'>❌ Error: ${result.message}</span>`;
+                    statusDiv.innerHTML = `<span class='text-red-600'>[ERROR] ${result.message}</span>`;
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<span class='text-red-600 font-bold'>❌ Connection Error. Is server running?</span>`;
+                statusDiv.innerHTML = `<span class='text-red-600'>[CONNECTION FAILED] SERVER UNREACHABLE.</span>`;
             }
             
             btn.disabled = false;
-            btn.innerHTML = "🚀 Start Test";
+            btn.innerHTML = "Initialize Test";
         });
 
         async function fetchData() {
@@ -155,36 +180,33 @@
                 const response = await fetch('/api/data');
                 const data = await response.json();
                 const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = ''; // Clear table
+                tbody.innerHTML = '';
 
                 data.forEach(row => {
-                    // row format: [db_id, patient_id, age, bmi, peak, std_peak, decay, std_decay, freq, timestamp]
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-gray-50 border-b transition-colors duration-150";
+                    tr.className = "hover:bg-red-900/10 border-b border-red-900/10 transition-colors duration-300";
                     
-                    // Highlight low frequencies for osteopenia/osteoporosis risk
-                    let freqClass = "font-bold text-green-600";
-                    if (row[8] < 50) freqClass = "font-bold text-red-600 bg-red-100 rounded px-2 py-1 inline-block";
+                    let freqClass = "text-gray-400";
+                    if (row[8] < 50) freqClass = "text-red-500 font-bold drop-shadow-[0_0_8px_rgba(255,0,0,0.8)]";
 
                     tr.innerHTML = `
-                        <td class="p-4 font-mono font-semibold text-blue-800">${row[1]}</td>
-                        <td class="p-4 text-sm text-gray-500">${row[9]}</td>
-                        <td class="p-4">${row[2]}</td>
-                        <td class="p-4">${row[3].toFixed(1)}</td>
-                        <td class="p-4 font-mono">${row[4].toFixed(2)}</td>
-                        <td class="p-4 font-mono">${row[6].toFixed(2)}</td>
-                        <td class="p-4 font-mono">
+                        <td class="p-5 font-mono text-red-500">${row[1]}</td>
+                        <td class="p-5 text-gray-600 text-[10px] uppercase tracking-widest">${row[9]}</td>
+                        <td class="p-5 font-mono">${row[2]}</td>
+                        <td class="p-5 font-mono">${row[3].toFixed(1)}</td>
+                        <td class="p-5 font-mono text-red-400">${row[4].toFixed(2)}</td>
+                        <td class="p-5 font-mono">${row[6].toFixed(2)}</td>
+                        <td class="p-5 font-mono">
                             <span class="${freqClass}">${row[8].toFixed(2)} Hz</span>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                console.error("Error fetching data:", error);
+                console.error("Data fetch error:", error);
             }
         }
 
-        // --- NEW: FETCH LIVE DROP PROGRESS ---
         async function fetchLiveStatus() {
             try {
                 const response = await fetch('/api/live');
@@ -192,21 +214,21 @@
                 const drops = parseInt(data.drops);
                 const banner = document.getElementById('liveBanner');
                 
-                // Show banner if a trial is actively running
-                if (drops > 0 && drops < 20) {
+                const MAX_DROPS = 5;
+
+                if (drops > 0 && drops < MAX_DROPS) {
                     banner.classList.remove('hidden');
                     document.getElementById('dropCounter').innerText = drops;
-                    document.getElementById('progressBar').style.width = (drops / 20) * 100 + "%";
+                    document.getElementById('progressBar').style.width = (drops / MAX_DROPS) * 100 + "%";
                 } else {
                     banner.classList.add('hidden');
                 }
             } catch (error) {}
         }
 
-        // Fetch data immediately, and then every 3 seconds
         fetchData();
         setInterval(fetchData, 3000);
-        setInterval(fetchLiveStatus, 500); // Check for new heel drops every 0.5 sec
+        setInterval(fetchLiveStatus, 500);
     </script>
 </body>
 </html>

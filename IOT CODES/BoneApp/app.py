@@ -4,6 +4,18 @@ import os
 import csv
 import io
 import requests
+import socket
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
 
 app = Flask(__name__)
 DB_FILE = "clinical_data.db"
@@ -117,8 +129,8 @@ def start_test():
     conn.close()
     
     patient_id = (max_id or 0) + 1
-    # Get the laptop IP dynamically from the request
-    laptop_ip = request.host.split(':')[0]
+    # Get the actual laptop IP address so ESP32 knows where to send data back
+    laptop_ip = get_local_ip()
     
     # Send the start command to ESP32
     url = f"http://{esp_ip}/start?id={patient_id}&age={age}&bmi={bmi}&server={laptop_ip}"
