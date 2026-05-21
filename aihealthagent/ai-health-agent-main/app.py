@@ -1542,8 +1542,13 @@ elif page == "🦴  IoT Osteoporosis Scan":
         
         patient_weight_kg = float(c3.number_input("Patient Weight (kg)", min_value=10.0, max_value=400.0, value=float(p.get("weight_kg", 70.0)), step=0.1))
 
-        esp_ip = st.text_input("ESP32 Sensor IP Address", value=st.session_state.get("esp_ip", "10.57.174.231"))
-        st.session_state["esp_ip"] = esp_ip
+        sim_mode = st.checkbox("Use Inbuilt Simulated Arduino (No physical hardware required)", value=True, help="Simulate a real-time heel drop test using a background simulation thread.")
+        if sim_mode:
+            esp_ip = "Simulation"
+            st.info("Simulation mode is enabled. No physical ESP32 or Wi-Fi configuration required.")
+        else:
+            esp_ip = st.text_input("ESP32 Sensor IP Address", value=st.session_state.get("esp_ip", "10.57.174.231"))
+            st.session_state["esp_ip"] = esp_ip
 
         submit_trigger = st.form_submit_button("Launch Arduino Bone Scan", type="primary", use_container_width=True)
 
@@ -1922,6 +1927,7 @@ elif page == "💬  Chat":
                 pass
 
         if use_llm and llm_cfg:
+            bmi_str = f"{ctx.last_bmi:.2f}" if ctx.last_bmi else "N/A"
             system_prompt = (
                 "You are an expert clinical nutrition, metabolic, and bone health coach inside a patient-facing monitoring app. "
                 "You are strictly grounded in standard medical and nutritional guidelines, specifically the ICMR (Indian Council of Medical Research) "
@@ -1937,10 +1943,10 @@ elif page == "💬  Chat":
                 "and a high-calcium local diet (ragi, dairy, sesame seeds, curry leaves).\n"
                 "5. Safe Clinical Boundaries: You do not diagnose disease. If negative health trends (glucose upward curve) or high values are visible in the context, "
                 "explicitly advise: 'Your recent trends show changes. Please consult your doctor and share these reports.'\n\n"
-                f"Active Patient Metrics:\n"
+                "Active Patient Metrics:\n"
                 f"- Name: {ctx.profile.get('name')}\n"
                 f"- Gender: {ctx.profile.get('gender')}\n"
-                f"- BMI: {ctx.last_bmi:.2f if ctx.last_bmi else 'N/A'}\n"
+                f"- BMI: {bmi_str}\n"
                 f"- Body Fat: {st.session_state.get('last_body_fat', 'N/A')}%\n"
                 f"- Visceral Risk: {st.session_state.get('last_visceral_risk', {}).get('risk_level', 'N/A')}\n"
                 f"- BMR (ICMR): {st.session_state.get('last_bmr', 'N/A')} kcal | TDEE: {st.session_state.get('last_tdee', 'N/A')} kcal\n"

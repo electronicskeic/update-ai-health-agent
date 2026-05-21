@@ -132,9 +132,60 @@ def start_test():
     # Get the actual laptop IP address so ESP32 knows where to send data back
     laptop_ip = get_local_ip()
     
-    # Send the start command to ESP32
-    url = f"http://{esp_ip}/start?id={patient_id}&age={age}&bmi={bmi}&server={laptop_ip}"
-    
+    # Send the start command to ESP32 or simulate
+    if esp_ip.strip().lower() in ("simulation", "simulated"):
+        import threading
+        import time
+        import random
+        
+        def run_simulated_drops():
+            global live_drop_count
+            time.sleep(1.0)
+            for drop in range(1, 6):
+                live_drop_count = drop
+                time.sleep(1.0)
+            
+            # Generate simulated clinical outcome dynamically
+            outcome = random.choice(["normal", "osteopenia", "osteoporosis"])
+            if outcome == "normal":
+                freq = round(random.uniform(100.0, 118.0), 1)
+                peak = round(random.uniform(2.5, 3.2), 2)
+                decay = round(random.uniform(0.5, 0.7), 2)
+            elif outcome == "osteopenia":
+                freq = round(random.uniform(50.0, 99.0), 1)
+                peak = round(random.uniform(2.0, 2.49), 2)
+                decay = round(random.uniform(0.71, 0.9), 2)
+            else:
+                freq = round(random.uniform(30.0, 48.0), 1)
+                peak = round(random.uniform(1.2, 1.99), 2)
+                decay = round(random.uniform(0.91, 1.25), 2)
+                
+            payload = {
+                "id": patient_id,
+                "age": age,
+                "bmi": bmi,
+                "peak": peak,
+                "stdPeak": round(random.uniform(0.05, 0.15), 2),
+                "decay": decay,
+                "stdDecay": round(random.uniform(0.02, 0.08), 2),
+                "freq": freq
+            }
+            
+            # Post simulation data locally
+            try:
+                requests.post("http://127.0.0.1:5000/upload", json=payload, timeout=5)
+            except Exception as e:
+                print(f"Simulation upload failed: {e}")
+                
+        threading.Thread(target=run_simulated_drops, daemon=True).start()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Inbuilt simulated Arduino triggered. Simulating 5 heel drops...",
+            "patient_id": patient_id,
+            "bmi": bmi
+        })
+
     try:
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
