@@ -10,7 +10,7 @@ class Plan:
     notes: list[str] | None = None
 
 
-def build_plan(*, bmi: float, category: str, risk_level: str) -> Plan:
+def build_plan(*, bmi: float, category: str, risk_level: str, visceral_risk: str = "Normal", body_fat_pct: float | None = None) -> Plan:
     b = float(bmi)
     risk = str(risk_level)
     cat = str(category)
@@ -19,29 +19,37 @@ def build_plan(*, bmi: float, category: str, risk_level: str) -> Plan:
     fitness: list[str] = []
     notes: list[str] = []
 
-    # Diet heuristics: practical, non-clinical, and safe defaults.
-    diet.append("Aim for a consistent meal schedule and prioritize whole foods (protein + fiber at each meal).")
-    diet.append("Swap sugary drinks for water/zero-calorie beverages most days.")
+    # 1. Baseline ICMR-NIN (2024) Dietary Guidelines (Localized)
+    diet.append("Prioritize complex, low-glycemic index (GI) carbohydrates like Jowar, Bajra, Ragi, or whole-wheat over white rice and maida.")
+    diet.append("Maintain an adequate daily dietary fiber intake of at least 30g by consuming green leafy vegetables, seasonal fruits, and whole pulses.")
+    diet.append("Restrict added cooking oils/visible fats to under 25-30g per day, choosing healthy fats (e.g. cold-pressed mustard, sesame, or groundnut oil).")
+    diet.append("Limit sugar and salt intake (<5g of salt/day, as endorsed by ICMR-NIN) to protect cardiovascular and metabolic health.")
 
-    if b >= 25:
-        diet.append("Use a simple portion rule: half plate veggies, quarter protein, quarter carbs.")
-        diet.append("Plan 1–2 high-protein snacks to reduce evening overeating (e.g., yogurt, eggs, legumes).")
+    # 2. Specific Obesity / BMI Heuristics
+    if b >= 23.0: # South Asian threshold for Overweight is 23.0 (ICMR)
+        diet.append("Apply the ICMR Plate Method: fill half of your plate with vegetables/salads, a quarter with lean protein, and a quarter with complex carbs.")
+        diet.append("Swap deep-fried snacks for high-fiber, high-protein alternatives like roasted chana, sprouts, or direct boiled legumes.")
     elif b < 18.5:
-        diet.append("Add one calorie-dense, nutrient-dense snack daily (nuts, olive oil, peanut butter).")
-        diet.append("Increase protein slightly and include carbs at each meal.")
-    else:
-        diet.append("Keep protein steady and include fruits/vegetables daily to maintain.")
+        diet.append("Introduce nutrient-dense, calorie-rich Indian snacks such as almonds, walnuts, paneer, or roasted peanuts.")
+        diet.append("Increase protein intake using healthy local sources (paneer, dals, curd, or lean meats) alongside complex carbs at every meal.")
 
-    # Fitness heuristics: align with risk.
-    fitness.append("Start with a daily 20–30 minute walk (or split into two 10–15 min walks).")
-    fitness.append("Do 2 short strength sessions/week (push, pull, squat/hinge) using bodyweight or bands.")
+    # 3. Visceral Fat & Body Composition Heuristics
+    if visceral_risk in ("Increased Risk", "High Visceral Risk"):
+        diet.append(f"⚠️ **Visceral Fat Focus**: Due to elevated abdominal fat indicators ({visceral_risk}), strictly avoid ultra-processed foods, trans fats, and sweetened beverages to prevent fatty liver risk.")
+    
+    if body_fat_pct is not None:
+        if body_fat_pct > 25.0:
+            diet.append(f"Target body re-composition: focus on high-quality proteins (1.2g/kg body weight) to preserve lean mass while oxidizing body fat.")
+
+    # 4. Fitness / Activity Guidelines (ICMR Aligned)
+    fitness.append("Aim for at least 150 minutes of moderate-intensity aerobic activity (brisk walking, cycling) per week, split across 5 days (30 mins/day).")
+    fitness.append("Perform strength training sessions 2-3 times per week (using bodyweight, resistance bands, or light weights) to build muscle mass.")
+    fitness.append("Build muscle mass specifically, as skeletal muscle is the main site for insulin-mediated glucose disposal and combatting South Asian metabolic syndrome.")
 
     if risk.lower() == "high":
-        notes.append("Keep changes small and consistent; reduce intensity if you feel pain or dizziness.")
-        notes.append("If you have symptoms or chronic conditions, consider checking with a clinician before major changes.")
-    elif risk.lower() == "moderate":
-        notes.append("Progress by +5 minutes of walking or +1 set per exercise each week.")
-
-    notes.append(f"Category: {cat}. These tips are educational and not medical advice.")
+        notes.append("Advisory: Since your calculated dataset risk is High, start with low-intensity activities (like walking) and increase duration slowly.")
+    
+    notes.append(f"Guidelines aligned with ICMR & National Institute of Nutrition (NIN) standards. Category: {cat}.")
     return Plan(diet=diet, fitness=fitness, notes=notes or None)
+
 

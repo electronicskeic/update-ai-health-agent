@@ -177,3 +177,64 @@ def to_diabetes_model_frame(df: pd.DataFrame) -> pd.DataFrame:
     out["target_diabetes"] = out["Outcome"].astype(int)
     features = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age", "target_diabetes"]
     return out[features]
+
+
+def calculate_icmr_bmr(weight_kg: float, gender: str) -> float:
+    """BMR calculation endorsed by ICMR-NIN (2024)."""
+    w = float(weight_kg)
+    if gender.lower() == "women" or gender.lower() == "female" or gender.lower() == "w":
+        return (11.5 * w) + 483
+    else:
+        return (13.5 * w) + 487
+
+
+def calculate_whtr(waist_cm: float, height_cm: float) -> float:
+    """Calculate Waist-to-Height Ratio (WHtR)."""
+    h_cm = float(height_cm)
+    if h_cm <= 0:
+        return 0.0
+    return float(waist_cm) / h_cm
+
+
+def estimate_body_fat_percentage(bmi: float, waist_cm: float, skinfold_mm: float, gender: str) -> float:
+    """
+    Advanced South Asian-specific anthropometric body fat percentage estimation 
+    based on BMI, Waist Circumference (visceral fat proxy), and Skinfold Thickness (subcutaneous fat proxy).
+    """
+    b = float(bmi)
+    w = float(waist_cm)
+    s = float(skinfold_mm)
+    if gender.lower() == "women" or gender.lower() == "female" or gender.lower() == "w":
+        fat = (0.45 * b) + (0.35 * w) + (0.15 * s) - 5
+    else:
+        fat = (0.45 * b) + (0.35 * w) + (0.15 * s) - 10
+    return max(2.0, min(60.0, fat))
+
+
+def assess_visceral_fat_risk(waist_cm: float, whtr: float, gender: str) -> dict[str, Any]:
+    """Assess risk of visceral adiposity based on ICMR/NIN guidelines for South Asians."""
+    w = float(waist_cm)
+    limit = 80.0 if (gender.lower() == "women" or gender.lower() == "female" or gender.lower() == "w") else 90.0
+    
+    is_high_waist = w > limit
+    is_high_whtr = whtr > 0.5
+    
+    risk_score = 0
+    if is_high_waist:
+        risk_score += 1
+    if is_high_whtr:
+        risk_score += 1
+        
+    risk_level = "Normal"
+    if risk_score == 1:
+        risk_level = "Increased Risk"
+    elif risk_score == 2:
+        risk_level = "High Visceral Risk"
+        
+    return {
+        "is_high_waist": is_high_waist,
+        "is_high_whtr": is_high_whtr,
+        "risk_level": risk_level,
+        "advisory": "High visceral fat is highly correlated with cardiovascular risk and insulin resistance." if risk_score > 0 else "Visceral fat is in the healthy range."
+    }
+

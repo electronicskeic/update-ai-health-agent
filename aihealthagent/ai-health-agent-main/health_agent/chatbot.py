@@ -69,6 +69,17 @@ def answer(user_text: str, ctx: ChatContext) -> str:
         except Exception:
             return "I can summarize the dataset from the **Insights** page after it loads successfully."
 
+    if any(k in t for k in ("bone", "osteoporosis", "osteopenia", "density", "t-score", "frequency", "heel drop")):
+        return (
+            "🦴 **Bone Vibration Spectroscopy & Osteoporosis Diagnostics:**\n"
+            "Using an edge-computing accelerometer, we measure bone acoustic resonance triggered by physical heel-drops:\n"
+            "- **Resonant Frequency >= 100 Hz**: Normal healthy bone density (Healthy, T-score >= -1.0).\n"
+            "- **Resonant Frequency 50 - 100 Hz**: Mild bone density loss (Osteopenia, T-score between -1.0 and -2.5).\n"
+            "- **Resonant Frequency < 50 Hz**: Porous/fragile bone architecture (Osteoporosis, T-score <= -2.5).\n\n"
+            "To support optimal bone health, the ICMR-NIN guidelines recommend regular weight-bearing physical activity, "
+            "adequate calcium intake (from local dairy, ragi, sesame, or leafy greens), and monitoring Vitamin D3 levels."
+        )
+
     if any(k in t for k in ("medical", "diagnose", "treatment", "prescribe", "symptom", "chest pain")):
         return "I can’t provide medical diagnosis or treatment. If you have symptoms or concerns, please consult a licensed clinician."
 

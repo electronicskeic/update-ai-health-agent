@@ -45,6 +45,13 @@ def init_db(db_path: Path) -> None:
               user_id INTEGER NOT NULL,
               date TEXT NOT NULL,
               weight_kg REAL NOT NULL,
+              glucose REAL,
+              hba1c REAL,
+              bp_systolic INTEGER,
+              bp_diastolic INTEGER,
+              waist_cm REAL,
+              skinfold_mm REAL,
+              waist_height_ratio REAL,
               note TEXT,
               created_at TEXT NOT NULL DEFAULT (datetime('now')),
               FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -60,6 +67,29 @@ def init_db(db_path: Path) -> None:
             );
             """
         )
+        
+        # Migration for pre-existing databases:
+        # Check if the new columns exist and alter the table if missing
+        cols_to_add = [
+            ("glucose", "REAL"),
+            ("hba1c", "REAL"),
+            ("bp_systolic", "INTEGER"),
+            ("bp_diastolic", "INTEGER"),
+            ("waist_cm", "REAL"),
+            ("skinfold_mm", "REAL"),
+            ("waist_height_ratio", "REAL")
+        ]
+        
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(checkins)")
+        existing_cols = {row["name"] for row in cursor.fetchall()}
+        
+        for col_name, col_type in cols_to_add:
+            if col_name not in existing_cols:
+                try:
+                    conn.execute(f"ALTER TABLE checkins ADD COLUMN {col_name} {col_type}")
+                except Exception:
+                    pass
 
 
 def _hash_password(password: str) -> bytes:
@@ -125,21 +155,59 @@ def load_profile(db_path: Path, *, user_id: int) -> dict[str, Any] | None:
         return None
 
 
-def add_checkin(db_path: Path, *, user_id: int, date: str, weight_kg: float, note: str | None) -> None:
+def add_checkin(
+    db_path: Path, 
+    *, 
+    user_id: int, 
+    date: str, 
+    weight_kg: float, 
+    glucose: float | None = None,
+    hba1c: float | None = None,
+    bp_systolic: int | None = None,
+    bp_diastolic: int | None = None,
+    waist_cm: float | None = None,
+    skinfold_mm: float | None = None,
+    waist_height_ratio: float | None = None,
+    note: str | None = None
+) -> None:
     with _connect(db_path) as conn:
         conn.execute(
-            "INSERT INTO checkins(user_id, date, weight_kg, note) VALUES (?, ?, ?, ?)",
-            (int(user_id), str(date), float(weight_kg), note),
+            """INSERT INTO checkins(
+                user_id, date, weight_kg, glucose, hba1c, 
+                bp_systolic, bp_diastolic, waist_cm, skinfold_mm, 
+                waist_height_ratio, note
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                int(user_id), str(date), float(weight_kg), 
+                glucose, hba1c, bp_systolic, bp_diastolic, 
+                waist_cm, skinfold_mm, waist_height_ratio, note
+            ),
         )
 
 
 def list_checkins(db_path: Path, *, user_id: int, limit: int = 200) -> list[dict[str, Any]]:
     with _connect(db_path) as conn:
         rows = conn.execute(
-            "SELECT date, weight_kg, note FROM checkins WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?",
+            """SELECT date, weight_kg, glucose, hba1c, 
+                      bp_systolic, bp_diastolic, waist_cm, skinfold_mm, 
+                      waist_height_ratio, note 
+               FROM checkins WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT ?""",
             (int(user_id), int(limit)),
         ).fetchall()
-    return [{"date": r["date"], "weight_kg": float(r["weight_kg"]), "note": r["note"]} for r in rows]
+    return [
+        {
+            "date": r["date"], 
+            "weight_kg": float(r["weight_kg"]), 
+            "glucose": float(r["glucose"]) if r["glucose"] is not None else None,
+            "hba1c": float(r["hba1c"]) if r["hba1c"] is not None else None,
+            "bp_systolic": int(r["bp_systolic"]) if r["bp_systolic"] is not None else None,
+            "bp_diastolic": int(r["bp_diastolic"]) if r["bp_diastolic"] is not None else None,
+            "waist_cm": float(r["waist_cm"]) if r["waist_cm"] is not None else None,
+            "skinfold_mm": float(r["skinfold_mm"]) if r["skinfold_mm"] is not None else None,
+            "waist_height_ratio": float(r["waist_height_ratio"]) if r["waist_height_ratio"] is not None else None,
+            "note": r["note"]
+        } for r in rows
+    ]
 
 
 def add_chat_message(db_path: Path, *, user_id: int, role: str, content: str) -> None:
